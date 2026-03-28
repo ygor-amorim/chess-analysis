@@ -108,16 +108,17 @@ def plot_openings(df):
 
     ax1.set_yticks(list(y))
     ax1.set_yticklabels(family_counts.index, color="white", fontsize=9)
-    ax1.set_title("Openings by Frequency (stacked W/L/D)", color="white", pad=10)
+    ax1.set_title("Openings by Frequency — All Games (stacked W/L/D)", color="white", pad=10)
     ax1.legend(facecolor="#2d2d4e", labelcolor="white", fontsize=9, loc="lower right")
     ax1.set_facecolor("#2d2d4e")
     ax1.tick_params(colors="white")
     ax1.set_xlabel("Games", color="white")
 
-    # --- 2. ECO category breakdown ---
+    # --- 2. ECO category breakdown (rated only) ---
     ax2 = fig.add_subplot(gs[1, 0])
 
-    cat_outcome = df.groupby(["eco_category", "outcome"]).size().unstack(fill_value=0)
+    rated_df = df[df["rated"]]
+    cat_outcome = rated_df.groupby(["eco_category", "outcome"]).size().unstack(fill_value=0)
     for col in ["win", "loss", "draw"]:
         if col not in cat_outcome.columns:
             cat_outcome[col] = 0
@@ -134,12 +135,11 @@ def plot_openings(df):
         )
     ax2.set_xticks([p + width for p in x])
     ax2.set_xticklabels(cat_outcome.index, color="white", fontsize=8, rotation=15, ha="right")
-    ax2.set_title("Results by ECO Category", color="white")
+    ax2.set_title("ECO Category — Rated Only", color="white")
     ax2.legend(facecolor="#2d2d4e", labelcolor="white", fontsize=8)
     ax2.set_facecolor("#2d2d4e")
     ax2.tick_params(colors="white")
 
-    # Add ECO category note
     note = "A=Flank  B=Semi-Open  C=Open  D=Closed"
     ax2.set_xlabel(note, color="#94a3b8", fontsize=7)
 
@@ -195,28 +195,37 @@ def plot_openings(df):
     plt.close()
 
 
-def print_summary(df):
-    print(f"\n{'='*50}")
-    print(f"  {USERNAME} -- Opening Repertoire")
-    print(f"{'='*50}")
-
-    family_stats = df.groupby("opening_family").agg(
+def _print_family_table(subset):
+    family_stats = subset.groupby("opening_family").agg(
         games=("outcome", "count"),
         wins=("outcome", lambda x: (x == "win").sum()),
         losses=("outcome", lambda x: (x == "loss").sum()),
         draws=("outcome", lambda x: (x == "draw").sum()),
     ).sort_values("games", ascending=False)
 
-    print(f"\n  {'Opening':<35} {'G':>3} {'W':>3} {'L':>3} {'D':>3} {'Win%':>5}")
+    print(f"  {'Opening':<35} {'G':>3} {'W':>3} {'L':>3} {'D':>3} {'Win%':>5}")
     print(f"  {'-'*55}")
     for name, row in family_stats.iterrows():
         pct = row.wins / row.games * 100 if row.games > 0 else 0
         marker = " *" if row.games >= 3 else ""
         print(f"  {name:<35} {int(row.games):>3} {int(row.wins):>3} {int(row.losses):>3} {int(row.draws):>3} {pct:>4.0f}%{marker}")
+    print(f"  * = 3+ games (statistically meaningful)")
 
-    print(f"\n  * = 3+ games (statistically meaningful)")
-    print(f"\n  ECO category breakdown:")
-    for cat, group in df.groupby("eco_category"):
+
+def print_summary(df):
+    print(f"\n{'='*50}")
+    print(f"  {USERNAME} -- Opening Repertoire (all {len(df)} games)")
+    print(f"{'='*50}\n")
+    _print_family_table(df)
+
+    rated = df[df["rated"]]
+    print(f"\n{'='*50}")
+    print(f"  Rated games only ({len(rated)} games)")
+    print(f"{'='*50}\n")
+    _print_family_table(rated)
+
+    print(f"\n  ECO category breakdown (rated only):")
+    for cat, group in rated.groupby("eco_category"):
         w = (group["outcome"] == "win").sum()
         total = len(group)
         print(f"    {cat:<20} {total:>3} games  {w/total*100:.0f}% win rate")
