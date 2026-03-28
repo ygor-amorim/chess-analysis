@@ -1,47 +1,6 @@
 # Session Log — chess-analysis
 
----
-
-## Session 1 — 2026-03-27
-
-### What We Did
-- Decided on project: chess.com game analysis using public API
-- Confirmed tech stack: Python (pandas, matplotlib) for analysis, Node.js/React for dashboard (Phase 2)
-- Installed Python 3.13 via winget, fixed PATH (App Execution Aliases were intercepting `python`)
-- Scaffolded project: `.gitignore`, `fetch.py`, `CLAUDE.md`, `SESSION_LOG.md`, `data/`, `analysis/`
-- Explored chess.com API: player ygwr has 2 months of data (Feb + Mar 2026), 38 games in March, mostly unrated practice games vs Coach-Canty
-
-### Files Created
-- `fetch.py` — fetches all games from all monthly archives, saves to `data/games.json`
-- `CLAUDE.md` — project guide
-- `SESSION_LOG.md` — this file
-- `.gitignore` — excludes `.venv/`, `data/`, `__pycache__`
-- `data/` — directory for raw game data (gitignored)
-- `analysis/` — directory for analysis scripts
-
-### Key Decisions
-| Decision | Reason |
-|----------|--------|
-| `data/` gitignored | Game data can always be re-fetched; no need to commit |
-| `User-Agent` header on requests | chess.com API requires it to avoid 403s |
-| `time.sleep(0.5)` between requests | Polite API usage — avoid rate limiting |
-| Python scripts over Jupyter notebooks | Simpler to start; user new to Python |
-
-### What We Also Did
-- Ran `fetch.py` → 46 games fetched (3 Feb + 43 Mar 2026)
-- Wrote and ran `analysis/overview.py` → chart saved to `analysis/output/overview.png`
-- Fixed Windows terminal Unicode encoding issue (`→` → `>>` in print)
-
-### Key Findings (Session 1)
-- 30% win rate overall (14W 24L 8D)
-- 63% of games are unrated — mostly coach practice (Coach-Mae, Coach-Canty, Coach-Anna)
-- Daily: 29 games — losing more (practice); Rapid: 15 games — more competitive; Blitz: 2 games
-- Data structure confirmed: color, outcome, opponent, rating, time_class, rated, PGN all available
-
-### Next Session
-- [x] `analysis/openings.py`
-- [x] `analysis/rating.py`
-- [x] Git init + first commit
+Older sessions in `SESSION_ARCHIVE.md`.
 
 ---
 
@@ -71,10 +30,6 @@
 - Blitz: only 2 rated games, went 310 → 181 (-129)
 - Queens Pawn Opening: 2/2 wins (100% — small sample but promising)
 
-### Next Session
-- [x] Separate rated vs unrated in openings
-- [x] Push to GitHub
-
 ---
 
 ## Session 3 — 2026-03-28
@@ -97,6 +52,33 @@
 - Rated openings: English Opening 38% win rate (8 games), Flank (A) = 64% of rated games
 - Semi-Open (B) rated win rate: 25% — worth improving
 
+---
+
+## Session 4 — 2026-03-28
+
+### What We Did
+- Built `analysis/game_length.py` — move count distribution by outcome and time class, box plots, loss reasons breakdown
+- Added `README.md` with chart previews and key findings for GitHub
+- Manual game analysis: ygwr vs Maria-BOT (1-0, 37 moves, Dutch Defense A84)
+
+### Files Created/Modified
+- `analysis/game_length.py` — new: move count analysis
+- `analysis/output/game_length.png` — new: chart output
+- `README.md` — new: GitHub landing page with all 4 chart previews
+
+### Key Decisions
+| Decision | Reason |
+|----------|--------|
+| Box plots over histograms for spread panel | Small dataset (46 games) makes histograms sparse; box plots show distribution better |
+
+### Key Findings (Session 4)
+- Resigned losses avg 22 moves, checkmates avg 29 — but coach practice (unrated) skews this heavily
+- Draws are almost entirely stalemates (6/8), all vs Coach-Mae at 47–81 moves — endgame training pattern
+- Short resigned losses are coaching sessions, not competitive collapses
+- Manual game: beat Maria-BOT (1000) with English → Dutch, b-pawn promotion at move 22, Qbg8# at move 37
+- Chasemaster20 (2-move resign) confirmed as a bot opponent, not a real player
+
 ### Next Session
-- [ ] `analysis/game_length.py` — move count distribution (do short games = blunders?)
-- [ ] Add README.md with chart previews for GitHub
+- [ ] Re-fetch when chess.com archive updates (new games from 2026-03-28 not yet in API)
+- [ ] Filter bot opponents from competitive analysis (Chasemaster20, Maria-BOT, Coach-*)
+- [ ] `analysis/opponents.py` — breakdown by opponent type (human vs bot vs coach)
